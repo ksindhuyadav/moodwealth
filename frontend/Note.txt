@@ -1,0 +1,1770 @@
+## APP.JS code1
+import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+
+function App() {
+  const [transactions, setTransactions] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [type, setType] = useState("expense");
+  const [mood, setMood] = useState("");
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  
+  /* ASK AI */
+  const askAI = () => {
+    let stressed = 0;
+    let happy = 0;
+  transactions.forEach((t) => {
+    if (t.mood === "stressed") stressed += t.amount;
+    if (t.mood === "happy") happy += t.amount;
+  });
+  if (question.toLowerCase().includes("spending")) {
+    if (stressed > happy) {
+      setAnswer("😣 You are spending more when stressed.");
+    } else {
+      setAnswer("😊 Your spending is mostly under control.");
+    }
+  } else {
+    setAnswer("🤖 Ask about your spending habits!");
+  }
+};
+
+
+  const chartData = transactions.map((t) => ({
+    name: t.category,
+    value: t.amount
+  }));
+
+  const fetchTransactions = () => {
+    fetch("http://127.0.0.1:5000/get-transactions")
+      .then((res) => res.json())
+      .then((data) => setTransactions(data));
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const addTransaction = () => {
+    fetch("http://127.0.0.1:5000/add-transaction", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        category,
+        type,
+        mood
+      }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        fetchTransactions();
+        setAmount("");
+        setCategory("");
+      });
+  };
+  const getMoodEmoji = (mood) => {
+    switch (mood) {
+      case "happy":
+        return "😊";
+      case "sad":
+        return "😢";
+      case "stressed":
+        return "😣";
+      default:
+        return "🙂";
+    }
+  };
+  const generateInsight = () => {
+    let happyExpense = 0;
+    let sadExpense = 0;
+    let stressedExpense = 0;
+  
+    transactions.forEach((t) => {
+      if (t.type === "expense"){
+      if (t.mood === "happy") happyExpense += t.amount;
+      if (t.mood === "sad") sadExpense += t.amount;
+      if (t.mood === "stressed") stressedExpense += t.amount;
+      }
+    });
+
+    const total = happyExpense + sadExpense + stressedExpense;
+
+    if (total === 0) return "No data yet 📊";
+  
+    if (stressedExpense > happyExpense && stressedExpense > sadExpense) {
+      return "⚠️ You spend more when stressed 😣.  Try relaxing before spending.";
+    }  if (sadExpense > happyExpense) {
+      return "😢 You tend to spend more when sad. Be mindful of emotional spending.";
+    }
+  
+    if (happyExpense > 0) {
+      return "😊 Your spending is balanced and controlled. Good job!";
+    }
+  
+    return "Track more data for insights 📊";
+    };
+
+    const monthlyData = [
+      {
+        name: "This Month",
+        income: transactions
+          .filter((t) => t.type === "income")
+          .reduce((a, t) => a + t.amount, 0),
+    
+        expense: transactions
+          .filter((t) => t.type === "expense")
+          .reduce((a, t) => a + t.amount, 0),
+      },
+    ];
+
+    /* Notification logic */
+    const getNotification = () => {
+      const totalIncome = transactions
+        .filter((t) => t.type === "income")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      const totalExpense = transactions
+        .filter((t) => t.type === "expense")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      if (totalExpense > totalIncome) {
+        return "⚠️ You are spending more than you earn!";
+      }
+    
+      if (totalExpense > totalIncome * 0.7) {
+        return "⚠️ High spending detected. Be careful!";
+      }
+    
+      return "💚 Great! Your finances are under control.";
+    };
+
+  return (
+    <div className="min-h-screen bg-slate-900 text-white p-6">
+      <h1 className="text-3xl font-bold mb-6">💰 MoodWealth Dashboard</h1>
+
+      <div className="bg-blue-500 text-white p-4 rounded-xl mb-6">
+  <h2 className="font-bold">Smart Notification 🔔</h2>
+  <p>{getNotification()}</p>
+</div>
+  
+      {/* CARDS */}
+      {/* CHART */}
+<div className="bg-slate-800 p-4 rounded-xl mb-6">
+  <h2 className="mb-3 font-semibold">Spending Chart 📊</h2>
+
+  <PieChart width={300} height={300}>
+    <Pie
+      data={chartData}
+      dataKey="value"
+      nameKey="name"
+      outerRadius={100}
+      label
+    >
+      {chartData.map((entry, index) => (
+        <Cell
+          key={index}
+          fill={["#3b82f6", "#10b981", "#ef4444"][index % 3]}
+        />
+      ))}
+    </Pie>
+    <Tooltip />
+  </PieChart>
+
+  {/* SMART INSIGHT */}
+  <div className="bg-yellow-500 text-black p-4 rounded-xl mb-6">
+  <h2 className="font-bold mb-2">Smart Insight 🧠</h2>
+  <p>{generateInsight()}</p>
+</div>
+{/* Monthly Report */}
+<div className="bg-slate-800 p-4 rounded-xl mb-6">
+  <h2 className="mb-3 font-semibold">Monthly Report 📊</h2>
+
+  <div className="bg-slate-800 p-4 rounded-xl mb-6">
+  <h2 className="mb-3 font-semibold">AI Assistant 🤖</h2>
+
+  <input
+    className="p-2 mr-2 rounded text-black"
+    placeholder="Ask something..."
+    value={question}
+    onChange={(e) => setQuestion(e.target.value)}
+  />
+
+  <button
+    className="bg-purple-500 px-4 py-2 rounded"
+    onClick={askAI}
+  >
+    Ask
+  </button>
+
+  <p className="mt-3">{answer}</p>
+</div>
+
+  <BarChart width={400} height={250} data={monthlyData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="income" fill="#22c55e" />
+    <Bar dataKey="expense" fill="#ef4444" />
+  </BarChart>
+</div>
+</div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-slate-800 p-4 rounded-xl shadow">
+          <h3 className="text-gray-400">Balance</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.reduce((a, t) =>
+              t.type === "income" ? a + t.amount : a - t.amount, 0)}
+          </p>
+        </div>
+  
+        <div className="bg-green-600 p-4 rounded-xl shadow">
+          <h3>Income</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "income")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+  
+        <div className="bg-red-600 p-4 rounded-xl shadow">
+          <h3>Expenses</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "expense")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+      </div>
+             
+  
+      {/* FORM */}
+      <div className="bg-slate-800 p-4 rounded-xl mb-6">
+        <h2 className="mb-3 font-semibold">Add Transaction</h2>
+  
+        <input
+          className="p-2 mr-2 rounded text-black"
+          type="number"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+  
+        <input
+          className="p-2 mr-2 rounded text-black"
+          type="text"
+          placeholder="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
+  
+        <select
+          className="p-2 mr-2 rounded text-black"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+        <select
+  className="p-2 mr-2 rounded text-black"
+  onChange={(e) => setMood(e.target.value)}
+>
+  <option value="">Select Mood</option>
+  <option value="happy">😊 Happy</option>
+  <option value="sad">😢 Sad</option>
+  <option value="stressed">😣 Stressed</option>
+</select>
+  
+        <button
+          className="bg-blue-500 px-4 py-2 rounded ml-2"
+          onClick={addTransaction}
+        >
+          Add
+        </button>
+      </div>
+  
+      {/* TRANSACTIONS */}
+      <div className="bg-slate-800 p-4 rounded-xl">
+        <h2 className="mb-3 font-semibold">Transactions</h2>
+  
+        {transactions.map((txn) => (
+          <div
+            key={txn.id}
+            className="flex justify-between border-b border-gray-700 py-2"
+          >
+            <span>
+  {txn.category} (
+  <span className={
+    txn.mood === "happy"
+      ? "text-green-400"
+      : txn.mood === "sad"
+      ? "text-blue-400"
+      : "text-red-400"
+  }>
+    {getMoodEmoji(txn.mood)} {txn.mood}
+  </span>
+  )
+</span>
+            <span>₹{txn.amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ✅ ALWAYS LAST LINE
+export default App;
+
+
+### APP-JS Code2 with Premium UI ####
+import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+
+function App() {
+  const [transactions, setTransactions] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [type, setType] = useState("expense");
+  const [mood, setMood] = useState("");
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  
+  /* ASK AI */
+  const askAI = () => {
+    let stressed = 0;
+    let happy = 0;
+  transactions.forEach((t) => {
+    if (t.mood === "stressed") stressed += t.amount;
+    if (t.mood === "happy") happy += t.amount;
+  });
+  if (question.toLowerCase().includes("spending")) {
+    if (stressed > happy) {
+      setAnswer("😣 You are spending more when stressed.");
+    } else {
+      setAnswer("😊 Your spending is mostly under control.");
+    }
+  } else {
+    setAnswer("🤖 Ask about your spending habits!");
+  }
+};
+
+
+  const chartData = transactions.map((t) => ({
+    name: t.category,
+    value: t.amount
+  }));
+
+  const fetchTransactions = () => {
+    fetch("http://127.0.0.1:5000/get-transactions")
+      .then((res) => res.json())
+      .then((data) => setTransactions(data));
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const addTransaction = () => {
+    fetch("http://127.0.0.1:5000/add-transaction", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        category,
+        type,
+        mood
+      }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        fetchTransactions();
+        setAmount("");
+        setCategory("");
+      });
+  };
+  const getMoodEmoji = (mood) => {
+    switch (mood) {
+      case "happy":
+        return "😊";
+      case "sad":
+        return "😢";
+      case "stressed":
+        return "😣";
+      default:
+        return "🙂";
+    }
+  };
+  const generateInsight = () => {
+    let happyExpense = 0;
+    let sadExpense = 0;
+    let stressedExpense = 0;
+  
+    transactions.forEach((t) => {
+      if (t.type === "expense"){
+      if (t.mood === "happy") happyExpense += t.amount;
+      if (t.mood === "sad") sadExpense += t.amount;
+      if (t.mood === "stressed") stressedExpense += t.amount;
+      }
+    });
+
+    const total = happyExpense + sadExpense + stressedExpense;
+
+    if (total === 0) return "No data yet 📊";
+  
+    if (stressedExpense > happyExpense && stressedExpense > sadExpense) {
+      return "⚠️ You spend more when stressed 😣.  Try relaxing before spending.";
+    }  if (sadExpense > happyExpense) {
+      return "😢 You tend to spend more when sad. Be mindful of emotional spending.";
+    }
+  
+    if (happyExpense > 0) {
+      return "😊 Your spending is balanced and controlled. Good job!";
+    }
+  
+    return "Track more data for insights 📊";
+    };
+
+    const monthlyData = [
+      {
+        name: "This Month",
+        income: transactions
+          .filter((t) => t.type === "income")
+          .reduce((a, t) => a + t.amount, 0),
+    
+        expense: transactions
+          .filter((t) => t.type === "expense")
+          .reduce((a, t) => a + t.amount, 0),
+      },
+    ];
+
+    /* Notification logic */
+    const getNotification = () => {
+      const totalIncome = transactions
+        .filter((t) => t.type === "income")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      const totalExpense = transactions
+        .filter((t) => t.type === "expense")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      if (totalExpense > totalIncome) {
+        return "⚠️ You are spending more than you earn!";
+      }
+    
+      if (totalExpense > totalIncome * 0.7) {
+        return "⚠️ High spending detected. Be careful!";
+      }
+    
+      return "💚 Great! Your finances are under control.";
+    };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white p-6">
+      <h1 className="text-3xl font-bold mb-6">💰 MoodWealth Dashboard</h1>
+
+      <div className="bg-blue-700 text-white p-4 rounded-xl mb-6 hover:scale-105 transition duration-300">
+  <h2 className="font-bold">Smart Notification 🔔</h2>
+  <p>{getNotification()}</p>
+</div>
+  
+      {/* CARDS */}
+      {/* CHART */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-1g hover:scale-105 transition duration-300">
+  <h2 className="mb-3 font-semibold">Spending Chart 📊</h2>
+
+  <PieChart width={300} height={300}>
+    <Pie
+      data={chartData}
+      dataKey="value"
+      nameKey="name"
+      outerRadius={100}
+      label
+    >
+      {chartData.map((entry, index) => (
+        <Cell
+          key={index}
+          fill={["#3b82f6", "#10b981", "#ef4444"][index % 3]}
+        />
+      ))}
+    </Pie>
+    <Tooltip />
+  </PieChart>
+
+  {/* SMART INSIGHT */}
+  <div className="bg-yellow-300 text-black p-4 rounded-xl mb-6 hover:scale-105 transition duration-300">
+  <h2 className="font-bold mb-2">Smart Insight 🧠</h2>
+  <p>{generateInsight()}</p>
+</div>
+{/* Monthly Report */}
+<div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+  <h2 className="mb-3 font-semibold">Monthly Report 📊</h2>
+
+  <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+  <h2 className="mb-3 font-semibold">AI Assistant 🤖</h2>
+
+  <input
+    className="p-2 mr-2 rounded text-black"
+    placeholder="Ask something..."
+    value={question}
+    onChange={(e) => setQuestion(e.target.value)}
+  />
+
+  <button
+    className="bg-purple-500 px-4 py-2 rounded"
+    onClick={askAI}
+  >
+    Ask
+  </button>
+
+  <p className="mt-3">{answer}</p>
+</div>
+
+  <BarChart width={400} height={250} data={monthlyData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="income" fill="#22c55e" />
+    <Bar dataKey="expense" fill="#ef4444" />
+  </BarChart>
+</div>
+</div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+          <h3 className="text-gray-400">Balance</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.reduce((a, t) =>
+              t.type === "income" ? a + t.amount : a - t.amount, 0)}
+          </p>
+        </div>
+  
+        <div className="bg-green-600 p-4 rounded-xl shadow hover:scale-105 transition duration-300">
+          <h3>Income</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "income")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+  
+        <div className="bg-red-600 p-4 rounded-xl shadow hover:scale-105 transition duration-300 ">
+          <h3>Expenses</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "expense")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+      </div>
+             
+  
+      {/* FORM */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+        <h2 className="mb-3 font-semibold">Add Transaction</h2>
+  
+        <input
+          className="p-2 mr-2 rounded text-black"
+          type="number"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+  
+        <input
+          className="p-2 mr-2 rounded text-black"
+          type="text"
+          placeholder="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
+  
+        <select
+          className="p-2 mr-2 rounded text-black"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+        <select
+  className="p-2 mr-2 rounded text-black"
+  onChange={(e) => setMood(e.target.value)}
+>
+  <option value="">Select Mood</option>
+  <option value="happy">😊 Happy</option>
+  <option value="sad">😢 Sad</option>
+  <option value="stressed">😣 Stressed</option>
+</select>
+  
+        <button
+          className="bg-blue-500 px-4 py-2 rounded ml-2"
+          onClick={addTransaction}
+        >
+          Add
+        </button>
+      </div>
+  
+      {/* TRANSACTIONS */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+        <h2 className="mb-3 font-semibold">Transactions</h2>
+  
+        {transactions.map((txn) => (
+          <div
+            key={txn.id}
+            className="flex justify-between border-b border-gray-700 py-2"
+          >
+            <span>
+  {txn.category} (
+  <span className={
+    txn.mood === "happy"
+      ? "text-green-400"
+      : txn.mood === "sad"
+      ? "text-blue-400"
+      : "text-red-400"
+  }>
+    {getMoodEmoji(txn.mood)} {txn.mood}
+  </span>
+  )
+</span>
+            <span>₹{txn.amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ✅ ALWAYS LAST LINE
+export default App;
+
+### APP.JS CODE-3 FOR USER LOGIN,WEEKLY CHART, MOOD VS SPENDING CHART ###
+import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { LineChart, Line } from "recharts";
+
+
+function App() {
+  const [isRegister, setIsRegister] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [type, setType] = useState("expense");
+  const [mood, setMood] = useState("");
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  
+  /* ASK AI */
+  const askAI = () => {
+    let stressed = 0;
+    let happy = 0;
+  transactions.forEach((t) => {
+    if (t.mood === "stressed") stressed += t.amount;
+    if (t.mood === "happy") happy += t.amount;
+  });
+  if (question.toLowerCase().includes("spending")) {
+    if (stressed > happy) {
+      setAnswer("😣 You are spending more when stressed.");
+    } else {
+      setAnswer("😊 Your spending is mostly under control.");
+    }
+  } else {
+    setAnswer("🤖 Ask about your spending habits!");
+  }
+};
+
+
+  const chartData = transactions.map((t) => ({
+    name: t.category,
+    value: t.amount
+  }));
+
+  const fetchTransactions = () => {
+    fetch(`http://127.0.0.1:5000/get-transactions?user_id=${user}`)
+      .then((res) => res.json())
+      .then((data) => setTransactions(data));
+  };
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const res = await fetch(`http://127.0.0.1:5000/get-transactions?user_id=${user}`);
+      const data = await res.json();
+      setTransactions(data);
+    };
+  
+    if (user) {
+      fetchTransactions();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) setUser(savedUser);
+  }, []);
+
+    
+
+  const addTransaction = () => {
+    fetch("http://127.0.0.1:5000/add-transaction", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        category,
+        type,
+        mood,
+        user_id: user
+      }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        fetchTransactions();
+        setAmount("");
+        setCategory("");
+      });
+  };
+  const getMoodEmoji = (mood) => {
+    switch (mood) {
+      case "happy":
+        return "😊";
+      case "sad":
+        return "😢";
+      case "stressed":
+        return "😣";
+      default:
+        return "🙂";
+    }
+  };
+  const generateInsight = () => {
+    let happyExpense = 0;
+    let sadExpense = 0;
+    let stressedExpense = 0;
+  
+    transactions.forEach((t) => {
+      if (t.type === "expense"){
+      if (t.mood === "happy") happyExpense += t.amount;
+      if (t.mood === "sad") sadExpense += t.amount;
+      if (t.mood === "stressed") stressedExpense += t.amount;
+      }
+    });
+
+    const total = happyExpense + sadExpense + stressedExpense;
+
+    if (total === 0) return "No data yet 📊";
+  
+    if (stressedExpense > happyExpense && stressedExpense > sadExpense) {
+      return "⚠️ You spend more when stressed 😣.  Try relaxing before spending.";
+    }  if (sadExpense > happyExpense) {
+      return "😢 You tend to spend more when sad. Be mindful of emotional spending.";
+    }
+  
+    if (happyExpense > 0) {
+      return "😊 Your spending is balanced and controlled. Good job!";
+    }
+  
+    return "Track more data for insights 📊";
+    };
+
+    const monthlyData = [
+      {
+        name: "This Month",
+        income: transactions
+          .filter((t) => t.type === "income")
+          .reduce((a, t) => a + t.amount, 0),
+    
+        expense: transactions
+          .filter((t) => t.type === "expense")
+          .reduce((a, t) => a + t.amount, 0),
+      },
+    ];
+
+    /* Notification logic */
+    const getNotification = () => {
+      const totalIncome = transactions
+        .filter((t) => t.type === "income")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      const totalExpense = transactions
+        .filter((t) => t.type === "expense")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      if (totalExpense > totalIncome) {
+        return "⚠️ You are spending more than you earn!";
+      }
+    
+      if (totalExpense > totalIncome * 0.7) {
+        return "⚠️ High spending detected. Be careful!";
+      }
+    
+      return "💚 Great! Your finances are under control.";
+    };
+
+    const handleRegister = async () => {
+      const res = await fetch("http://127.0.0.1:5000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+    
+      const data = await res.json();
+    
+      if (res.ok) {
+        alert("Registered successfully ✅");
+        setIsRegister(false); // switch to login
+      } else {
+        alert(data.message);
+      }
+    };
+    
+    const handleLogin = async () => {
+      const res = await fetch("http://127.0.0.1:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+    
+      const data = await res.json();
+    
+      if (res.ok) {
+        setUser(data.user_id);
+        localStorage.setItem("user", data.user_id);
+      } else {
+        alert(data.message);
+      }
+    };   
+    
+
+    if (!user) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-900">
+          <div className="bg-white/5 backdrop-blur-xl p-6 rounded-xl w-80">
+    
+            <h2 className="mb-4 text-white text-xl">
+              {isRegister ? "Register 📝" : "Login 🔐"}
+            </h2>
+    
+            <input
+              className="p-2 mb-2 w-full rounded text-black"
+              placeholder="Username"
+              onChange={(e) => setUsername(e.target.value)}
+            />
+    
+            <input
+              className="p-2 mb-2 w-full rounded text-black"
+              type="password"
+              placeholder="Password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+    
+            <button
+              className="bg-blue-500 w-full p-2 rounded mb-2"
+              onClick={isRegister ? handleRegister : handleLogin}
+            >
+              {isRegister ? "Register" : "Login"}
+            </button>
+    
+            <p
+              className="text-sm text-gray-300 cursor-pointer text-center"
+              onClick={() => setIsRegister(!isRegister)}
+            >
+              {isRegister
+                ? "Already have account? Login"
+                : "New user? Register"}
+            </p>
+    
+          </div>
+        </div>
+      );
+    }  
+    
+    /* Prepare Weekly Data */
+    const weeklyData = {};
+
+transactions.forEach((t) => {
+  const day = new Date(t.date).toLocaleString("en-IN",{
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  if (!weeklyData[day]) {
+    weeklyData[day] = 0;
+  }
+
+  if (t.type === "expense") {
+    weeklyData[day] += t.amount;
+  }
+});
+
+const chartWeeklyData = Object.keys(weeklyData).map((day) => ({
+  day,
+  expense: weeklyData[day],
+}));
+
+/* Mood vs Spending Graph Logic here:- 😊📊*/
+const moodData = {};
+transactions.forEach((t) => {
+  if (!moodData[t.mood]) {
+    moodData[t.mood] = 0;
+  }
+
+  if (t.type === "expense") {
+    moodData[t.mood] += t.amount;
+  }
+});
+
+const chartMoodData = Object.keys(moodData).map((mood) => ({
+  mood,
+  amount: moodData[mood],
+}));
+
+    /* Main DashBoard */
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white p-6">
+      <h1 className="text-3xl font-bold mb-6">💰 MoodWealth Dashboard</h1>
+
+      <button
+  className="bg-orange-400 px-3 py-1 rounded mb-4 hover:scale-105 transition duration-300"
+  onClick={() => {
+    setUser(null);
+    localStorage.removeItem("username");
+  }}
+>
+  Logout 🚪
+</button>
+
+<h2 className="text-xl mb-4">
+  Hey hii...Welcome, {username}👋
+</h2>
+
+      <div className="bg-blue-700 text-white p-4 rounded-xl mb-6 hover:scale-105 transition duration-300">
+  <h2 className="font-bold">Smart Notification 🔔</h2>
+  <p>{getNotification()}</p>
+</div>
+  
+      {/* CARDS */}
+      {/* CHART */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-1g hover:scale-105 transition duration-300">
+  <h2 className="mb-3 font-semibold">Spending Chart 📊</h2>
+
+  <PieChart width={300} height={300}>
+    <Pie
+      data={chartData}
+      dataKey="value"
+      nameKey="name"
+      outerRadius={100}
+      label
+    >
+      {chartData.map((entry, index) => (
+        <Cell
+          key={index}
+          fill={["#3b82f6", "#10b981", "#ef4444"][index % 3]}
+        />
+      ))}
+    </Pie>
+    <Tooltip />
+  </PieChart>
+
+  {/* SMART INSIGHT */}
+  <div className="bg-yellow-300 text-black p-4 rounded-xl mb-6 hover:scale-105 transition duration-300">
+  <h2 className="font-bold mb-2">Smart Insight 🧠</h2>
+  <p>{generateInsight()}</p>
+</div>
+{/* Monthly Report */}
+<div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+  <h2 className="mb-3 font-semibold">Monthly Report 📊</h2>
+
+  <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+  <h2 className="mb-3 font-semibold">AI Assistant 🤖</h2>
+
+  <input
+    className="p-2 mr-2 rounded text-black"
+    placeholder="Ask something..."
+    value={question}
+    onChange={(e) => setQuestion(e.target.value)}
+  />
+
+  <button
+    className="bg-purple-500 px-4 py-2 rounded"
+    onClick={askAI}
+  >
+    Ask
+  </button>
+
+  <p className="mt-3">{answer}</p>
+</div>
+
+  <BarChart width={400} height={250} data={monthlyData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="income" fill="#22c55e" />
+    <Bar dataKey="expense" fill="#ef4444" />
+  </BarChart>
+</div>
+</div>
+
+ 
+<div className="bg-white/5 backdrop-blur-xl p-4 rounded-xl mb-6">
+  <h2 className="mb-3 font-semibold">Mood vs Spending 😊📊</h2>
+
+  <BarChart width={400} height={250} data={chartMoodData}>
+    <XAxis dataKey="mood" />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="amount" fill="#8b5cf6" />
+  </BarChart>
+</div>
+
+
+<div className="bg-white/5 backdrop-blur-xl p-4 rounded-xl mb-6">
+  <h2 className="mb-3 font-semibold">Weekly Spending 📈</h2>
+
+  <LineChart width={400} height={250} data={chartWeeklyData}>
+    <XAxis dataKey="day" />
+    <YAxis />
+    <Tooltip />
+    <Line type="monotone" dataKey="expense" stroke="#3b82f6" />
+  </LineChart>
+</div>
+
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+          <h3 className="text-gray-400">Balance</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.reduce((a, t) =>
+              t.type === "income" ? a + t.amount : a - t.amount, 0)}
+          </p>
+        </div>
+  
+        <div className="bg-green-600 p-4 rounded-xl shadow hover:scale-105 transition duration-300">
+          <h3>Income</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "income")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+  
+        <div className="bg-red-600 p-4 rounded-xl shadow hover:scale-105 transition duration-300 ">
+          <h3>Expenses</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "expense")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+      </div>
+             
+  
+      {/* FORM */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+        <h2 className="mb-3 font-semibold">Add Transaction</h2>
+  
+        <input
+          className="p-2 mr-2 rounded text-black"
+          type="number"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+  
+        <input
+          className="p-2 mr-2 rounded text-black"
+          type="text"
+          placeholder="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
+  
+        <select
+          className="p-2 mr-2 rounded text-black"
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+        <select
+  className="p-2 mr-2 rounded text-black"
+  onChange={(e) => setMood(e.target.value)}
+>
+  <option value="">Select Mood</option>
+  <option value="happy">😊 Happy</option>
+  <option value="sad">😢 Sad</option>
+  <option value="stressed">😣 Stressed</option>
+</select>
+  
+        <button
+          className="bg-blue-500 px-4 py-2 rounded ml-2"
+          onClick={addTransaction}
+        >
+          Add
+        </button>
+      </div>
+  
+      {/* TRANSACTIONS */}
+      <div className="bg-white/5 backdrop-blur-xl border border-white/20 shadow-lg hover:scale-105 transition duration-300">
+        <h2 className="mb-3 font-semibold">Transactions</h2>
+  
+        {transactions.map((txn) => (
+          <div
+            key={txn.id}
+            className="flex justify-between border-b border-gray-700 py-2"
+          >
+            <span>
+  {txn.category} (
+  <span className={
+    txn.mood === "happy"
+      ? "text-green-400"
+      : txn.mood === "sad"
+      ? "text-blue-400"
+      : "text-red-400"
+  }>
+    {getMoodEmoji(txn.mood)} {txn.mood}
+  </span>
+  )
+</span>
+            <span>₹{txn.amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ✅ ALWAYS LAST LINE
+export default App;
+
+### updated APP.JS ###
+import React, { useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import confetti from "canvas-confetti";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { LineChart, Line } from "recharts";
+import { motion } from "framer-motion";
+
+function App() {
+  const [isRegister, setIsRegister] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [type, setType] = useState("expense");
+  const [mood, setMood] = useState("");
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  
+  /* ASK AI */
+  const askAI = () => {
+    let stressed = 0;
+    let happy = 0;
+  transactions.forEach((t) => {
+    if (t.mood === "stressed") stressed += t.amount;
+    if (t.mood === "happy") happy += t.amount;
+  });
+  if (question.toLowerCase().includes("spending")) {
+    if (stressed > happy) {
+      setAnswer("😣 You are spending more when stressed.");
+    } else {
+      setAnswer("😊 Your spending is mostly under control.");
+    }
+  } else {
+    setAnswer("🤖 Ask about your spending habits!");
+  }
+};
+
+
+  const chartData = transactions.map((t) => ({
+    name: t.category,
+    value: t.amount
+  }));
+
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
+  };
+
+  
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const res = await fetch(`http://127.0.0.1:5000/get-transactions?user_id=${user?.id}`);
+      const data = await res.json();
+      setTransactions(data);
+    };
+  
+    if (user) {
+      fetchTransactions();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+      const parsedUser = JSON.parse(savedUser);
+      setUser(parsedUser); 
+    }
+  }, []);
+
+  
+  const addTransaction = () => {
+    fetch("http://127.0.0.1:5000/add-transaction", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        category: category,
+        type: type,
+        mood: mood,
+        user_id: Number(user?.id)
+      }),
+    })
+    .then((data) => {
+      console.log(data);
+      triggerConfetti();
+      toast("💰 Transaction Added Successfully!", {
+        duration: 2000,
+        style: {
+          background: "#020617",
+          color: "#3b82f6",
+          border: "1px solid #3b82f6",
+          padding: "12px",
+          borderRadius: "10px"
+        },
+      });
+      setAmount("");
+      setCategory("");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    })
+      .catch((err) => console.error(err));
+  };
+
+  const getMoodEmoji = (mood) => {
+    switch (mood) {
+      case "happy":
+        return "😊";
+      case "sad":
+        return "😢";
+      case "stressed":
+        return "😣";
+      default:
+        return "🙂";
+    }
+  };
+  const generateInsight = () => {
+    let happyExpense = 0;
+    let sadExpense = 0;
+    let stressedExpense = 0;
+  
+    transactions.forEach((t) => {
+      if (t.type === "expense"){
+      if (t.mood === "happy") happyExpense += t.amount;
+      if (t.mood === "sad") sadExpense += t.amount;
+      if (t.mood === "stressed") stressedExpense += t.amount;
+      }
+    });
+
+    const total = happyExpense + sadExpense + stressedExpense;
+
+    if (total === 0) return "No data yet 📊";
+  
+    if (stressedExpense > happyExpense && stressedExpense > sadExpense) {
+      return "⚠️ You spend more when stressed 😣.  Try relaxing before spending.";
+    }  if (sadExpense > happyExpense) {
+      return "😢 You tend to spend more when sad. Be mindful of emotional spending.";
+    }
+  
+    if (happyExpense > 0) {
+      return "😊 Your spending is balanced and controlled. Good job!";
+    }
+  
+    return "Track more data for insights 📊";
+    };
+
+    const monthlyData = [
+      {
+        name: "This Month",
+        income: transactions
+          .filter((t) => t.type === "income")
+          .reduce((a, t) => a + t.amount, 0),
+    
+        expense: transactions
+          .filter((t) => t.type === "expense")
+          .reduce((a, t) => a + t.amount, 0),
+      },
+    ];
+
+    /* Notification logic */
+    const getNotification = () => {
+      const totalIncome = transactions
+        .filter((t) => t.type === "income")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      const totalExpense = transactions
+        .filter((t) => t.type === "expense")
+        .reduce((a, t) => a + t.amount, 0);
+    
+      if (totalExpense > totalIncome) {
+        return "⚠️ You are spending more than you earn!";
+      }
+    
+      if (totalExpense > totalIncome * 0.7) {
+        return "⚠️ High spending detected. Be careful!";
+      }
+    
+      return "💚 Great! Your finances are under control.";
+    };
+
+    const handleRegister = async () => {
+      const res = await fetch("http://127.0.0.1:5000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+    
+      const data = await res.json();
+    
+      if (res.ok) {
+        alert("Registered successfully ✅");
+        setIsRegister(false); // switch to login
+      } else {
+        alert(data.message);
+      }
+    };
+    
+    const handleLogin = async () => {
+      const res = await fetch("http://127.0.0.1:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+    
+      const data = await res.json();
+    
+      if (res.ok) {
+        const userData = {
+          id: data.user_id,
+          username: username,
+        };
+    
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+      } else {
+        alert(data.message);
+      }
+    };
+    
+
+    if (!user) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-900">
+          <div className="bg-white/5 backdrop-blur-xl p-6 rounded-xl w-80">
+    
+            <h2 className="mb-4 text-white text-xl">
+              {isRegister ? "Register 📝" : "Login 🔐"}
+            </h2>
+    
+            <input
+              className="p-2 mb-2 w-full rounded text-black"
+              placeholder="Username"
+              onChange={(e) => setUsername(e.target.value)}
+            />
+    
+            <input
+              className="p-2 mb-2 w-full rounded text-black"
+              type="password"
+              placeholder="Password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+    
+            <button
+              className="bg-blue-500 w-full p-2 rounded mb-2"
+              onClick={isRegister ? handleRegister : handleLogin}
+            >
+              {isRegister ? "Register" : "Login"}
+            </button>
+    
+            <p
+              className="text-sm text-gray-300 cursor-pointer text-center"
+              onClick={() => setIsRegister(!isRegister)}
+            >
+              {isRegister
+                ? "Already have account? Login"
+                : "New user? Register"}
+            </p>
+    
+          </div>
+        </div>
+      );
+    }  
+    
+    /* Prepare Weekly Data */
+    const weeklyData = {};
+
+transactions.forEach((t) => {
+  const day = new Date(t.date).toLocaleString("en-IN",{
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  if (!weeklyData[day]) {
+    weeklyData[day] = 0;
+  }
+
+  if (t.type === "expense") {
+    weeklyData[day] += t.amount;
+  }
+});
+
+const chartWeeklyData = Object.keys(weeklyData).map((day) => ({
+  day,
+  expense: weeklyData[day],
+}));
+
+/* Mood vs Spending Graph Logic here:- 😊📊*/
+const moodData = {};
+transactions.forEach((t) => {
+  if (!moodData[t.mood]) {
+    moodData[t.mood] = 0;
+  }
+
+  if (t.type === "expense") {
+    moodData[t.mood] += t.amount;
+  }
+});
+
+const chartMoodData = Object.keys(moodData).map((mood) => ({
+  mood,
+  amount: moodData[mood],
+}));
+
+    /* Main DashBoard */
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white p-6">
+      <Toaster position="top-right"/>
+      <div className="flex justify-between items-center mb-6">
+{/* LEFT SIDE */}
+<h1 className="text-2xl font-bold">MoodWealth 💰</h1>
+{/* RIGHT SIDE */}
+<div className="flex items-center gap-4 hover:scale-105 transition duration-">
+  <span className="text-gray-300">
+    👤 {user?.username}
+  </span>
+  <button
+    className="bg-red-500 px-3 py-1 rounded hover:scale-105 transition duration-"
+    onClick={() => {
+      setUser(null);
+      localStorage.removeItem("user");
+    }}
+  >
+    Logout 🚪
+  </button>
+</div>
+</div>
+
+
+<h2 className="text-xl mb-4">
+Welcome, {user?.username} 👋
+</h2>
+
+      <div className="bg-blue-700 text-white p-4 rounded-xl mb-6 hover:scale-105 transition duration-300">
+  <h2 className="font-bold">Smart Notification 🔔</h2>
+  <p>{getNotification()}</p>
+</div>
+  
+      {/* CARDS */}
+      {/* CHART */}
+      <div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>
+  <h2 className="mb-3 font-semibold">Spending Chart 📊</h2>
+
+  <PieChart width={300} height={300}>
+    <Pie
+      data={chartData}
+      dataKey="value"
+      nameKey="name"
+      outerRadius={100}
+      label
+    >
+      {chartData.map((entry, index) => (
+        <Cell
+          key={index}
+          fill={["#3b82f6", "#10b981", "#ef4444"][index % 3]}
+        />
+      ))}
+    </Pie>
+    <Tooltip />
+  </PieChart>
+
+  {/* SMART INSIGHT */}
+  <div className="bg-yellow-300 text-black p-4 rounded-xl mb-6 hover:scale-105 transition duration-300">
+  <h2 className="font-bold mb-2">Smart Insight 🧠</h2>
+  <p>{generateInsight()}</p>
+</div>
+{/* Monthly Report */}
+ <div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>
+  <h2 className="mb-3 font-semibold">Monthly Report 📊</h2>
+  <div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>
+    <h2 className="mb-3 font-semibold">AI Assistant 🤖</h2>
+
+  <input
+    className="p-2 mr-2 rounded text-black"
+    placeholder="Ask something..."
+    value={question}
+    onChange={(e) => setQuestion(e.target.value)}
+  />
+
+  <button
+    className="bg-purple-500 px-4 py-2 rounded"
+    onClick={askAI}
+  >
+    Ask
+  </button>
+
+  <p className="mt-3">{answer}</p>
+</div>
+
+  <BarChart width={400} height={250} data={monthlyData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="income" fill="#22c55e" />
+    <Bar dataKey="expense" fill="#ef4444" />
+  </BarChart>
+</div>
+</div>
+
+ 
+<div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>
+
+  <h2 className="mb-3 font-semibold">Mood vs Spending 😊📊</h2>
+
+  <BarChart width={400} height={250} data={chartMoodData}>
+    <XAxis dataKey="mood" />
+    <YAxis />
+    <Tooltip />
+    <Bar dataKey="amount" fill="#8b5cf6" />
+  </BarChart>
+</div>
+
+<div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>
+  <h2 className="mb-3 font-semibold">Weekly Spending 📈</h2>
+
+  <LineChart width={400} height={250} data={chartWeeklyData}>
+    <XAxis dataKey="day" />
+    <YAxis />
+    <Tooltip />
+    <Line type="monotone" dataKey="expense" stroke="#3b82f6" />
+  </LineChart>
+</div>
+
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>
+      
+          <h3>Balance</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.reduce((a, t) =>
+              t.type === "income" ? a + t.amount : a - t.amount, 0)}
+          </p>
+        </div>
+
+         <div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>     
+        
+          <h3>Income</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "income")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+
+         <div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       whileHover={{ scale: 1.05 }}
+       transition={{ duration: 0.5}}
+       ></motion.div>   
+         
+          <h3>Expenses</h3>
+          <p className="text-xl font-bold">
+            ₹{transactions.filter(t => t.type === "expense")
+              .reduce((a, t) => a + t.amount, 0)}
+          </p>
+        </div>
+      </div>
+             
+  
+      {/* add Transaction */}
+      <div className="bg-white/5 backdrop-blur-xl p-4 rounded-xl mb-6">
+  <h2 className="mb-4 font-semibold">Add Transaction</h2>
+
+  <div className="flex flex-wrap gap-3 items-center">
+
+    <input
+      className="p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
+      type="number"
+      placeholder="Amount"
+      value={amount}
+      onChange={(e) => setAmount(e.target.value)}
+    />
+
+    <input
+      className="p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
+      type="text"
+      placeholder="Category"
+      value={category}
+      onChange={(e) => setCategory(e.target.value)}
+    />
+
+    <select
+      className="p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
+      value={type}
+      onChange={(e) => setType(e.target.value)}
+    >
+      <option value="expense">Expenses</option>
+      <option value="income">Income</option>
+    </select>
+
+    <select
+      className="p-2 rounded text-black focus:outline-none focus:ring-2 focus:ring-blue-400"
+      value={mood}
+      onChange={(e) => setMood(e.target.value)}
+    >
+      <option value="">Select Mood</option>
+      <option value="happy">😊 Happy</option>
+      <option value="sad">😢 Sad</option>
+      <option value="stressed">😣 Stressed</option>
+      <option value="excited">😍 Excited</option>
+      <option value="angry">😡 Angry</option>
+      <option value="tired">😴 Tired</option>
+      <option value="motivated">🤩 Motivated</option>
+
+    </select>
+
+    <motion.button
+  className="bg-blue-500 px-4 py-2 rounded"
+  whileTap={{ scale: 0.9 }}
+  whileHover={{ scale: 1.05 }}
+  onClick={addTransaction}
+>
+  Add
+</motion.button>
+
+  </div>
+</div>
+  
+      {/* TRANSACTIONS */}
+      <div>
+      <motion.div
+       className="bg-white/5 backdrop-blur-xl p-4 rounded-xl mb-6"
+       initial={{ opacity: 0, y: 30}}
+       animate={{ opacity: 1, y: 0}}
+       transition={{ duration: 0.5}}
+       ></motion.div>
+      
+        <h2 className="mb-3 font-semibold">Transactions</h2>
+  
+        {transactions.map((txn) => (
+          <div
+            key={txn.id}
+            className="flex justify-between border-b border-gray-700 py-2"
+          >
+            <span>
+  {txn.category} (
+  <span className={
+    txn.mood === "happy"
+      ? "text-green-400"
+      : txn.mood === "sad"
+      ? "text-blue-400"
+      : "text-red-400"
+  }>
+    {getMoodEmoji(txn.mood)} {txn.mood}
+  </span>
+  )
+</span>
+            <span>₹{txn.amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ✅ ALWAYS LAST LINE
+export default App;
+
