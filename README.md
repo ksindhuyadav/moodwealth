@@ -21,7 +21,7 @@ MoodWealth is a modern web application that helps users track their financial tr
 ## Tech Stack:
 
 # 1. Frontend
-- React.js 
+- React.js
 - Tailwind CSS 
 - Recharts 
 - Framer Motion 
@@ -35,28 +35,30 @@ MoodWealth is a modern web application that helps users track their financial tr
 
 ## Project Structure :
 
-MoodWealth/
-  frontend/     # React App
-  backend/      # Flask API
-  README.md
+step-1: create a Main folder like "MoodWealth"
+
+step-2: create sub-folders are like "frontend" and "backend"
+
+step-3: README.md
 
 
 ## How to Run Locally :
 First you must be run this project start with Backend
 # Run Backend
-cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
+step-1: open your "terminal" or "cmd" then enter: cd backend
+
+step-2: create environment, use this: python -m venv venv
+
+step-3: activate environment, use this: venv\Scripts\activate
+
+step-4: Instal requirements, use this: pip install -r requirements.txt
+
+step-5: Run backend: python app.py
+
 
 # Run Frontend
-cd frontend
-npm install
-npm start
+step-1: open your "terminal" or "cmd" then enter: cd frontend
 
-### 🔹 Clone the repository
+step-2: npm install
 
-```bash
-git clone https://github.com/ksindhuyadav/moodwealth.git
-cd moodwealth
+step-3: Run frontend: npm start
