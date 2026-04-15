@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from database import db
 
+
 # Import models
 from models import User, Transaction, Mood
 
@@ -92,4 +93,6 @@ def login():
 
 # RUN APP
 if __name__ == '__main__':
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
