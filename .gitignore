@@ -28,7 +28,8 @@ backend/_pycache_
 # =========================
 # Environment variables (SECRET)
 # =========================
-backend/.venv
+venv/
+backend/venv/
 
 # =========================
 # MongoDB (local files if any)
