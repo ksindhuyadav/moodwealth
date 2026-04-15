@@ -32,7 +32,7 @@ def add_transaction():
         category=data['category'],
         type=data['type'],
         mood=data.get('mood'),
-        user_id=data['user_id']
+        user_id=data.get('user_id')
     )
 
     db.session.add(new_txn)
@@ -43,8 +43,7 @@ def add_transaction():
 #  GET TRANSACTIONS
 @app.route('/get-transactions', methods=['GET'])
 def get_transactions():
-    data = request.json
-    user_id = data['user_id']
+    user_id = request.args.get('user_id')
     transactions = Transaction.query.filter_by(user_id=user_id).all()
     
     result = []
@@ -89,7 +88,7 @@ def login():
     if user and user.password == data['password']:
         return jsonify({"message": "Login success ✅", "user_id": user.id})
     
-    return jsonify({"message": "Invalid credentials ❌"}), 401
+    return jsonify({"message": "If a new user, please register first !!"}), 401
 
 
 # RUN APP

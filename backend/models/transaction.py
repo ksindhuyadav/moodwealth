@@ -7,5 +7,5 @@ class Transaction(db.Model):
     category = db.Column(db.String(50))
     type = db.Column(db.String(10))  # income / expense
     mood = db.Column(db.String(20))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer)
     date = db.Column(db.DateTime, default=datetime.utcnow)
