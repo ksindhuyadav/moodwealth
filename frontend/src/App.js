@@ -15,6 +15,7 @@ function App() {
   const [passwordError, setPasswordError] = useState("");
   const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [notification, setNotification] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [type, setType] = useState("expense");
@@ -38,10 +39,21 @@ function App() {
   //* Fech transactions on load and after adding new transaction *//
   useEffect(() => {
     const fetchTransactions = async () => {
-      const res = await fetch(`https://moodwealth-backend.onrender.com/get-transactions?user_id=${user?.id}`);
+      const res = await fetch("https://moodwealth-backend.onrender.com/get-transactions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+        }),
+      });
+
       const data = await res.json();
       setTransactions(data);
+      checkSmartNotification(data);
     };
+
     if (user) {
       fetchTransactions();
     }
@@ -53,6 +65,16 @@ function App() {
       setUser(parsedUser); 
     }
   }, []);
+
+    useEffect(() => {
+      if (notification) {
+        const timer = setTimeout(() => {
+           setNotification("");
+        }, 4000);
+
+          return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   //* Add Transaction logic here:- *//
   const addTransaction = () => {
@@ -66,7 +88,7 @@ function App() {
         category: category,
         type: type,
         mood: mood,
-        user_id: Number(user?.id)
+        user_id: user.id
       }),
     })
     .then((data) => {
@@ -91,6 +113,28 @@ function App() {
       .catch((err) => console.error(err));
   };
 
+  
+      const checkSmartNotification = (transactions) => {
+        const totalExpense = transactions
+          .filter(t => t.type === "expense")
+          .reduce((a, t) => a + t.amount, 0);
+
+          const totalSaving = transactions
+            .filter(t => t.type === "saving")
+            .reduce((a, t) => a + t.amount, 0);
+
+           const stressedCount = transactions.filter(t => t.mood === "stressed").length;
+
+           if (totalExpense > 5000) {
+           setNotification("⚠️ You are spending too much!");
+           } else if (totalSaving > 2000) {
+             setNotification("💰 Great job! You are saving well!");
+           } else if (stressedCount > 3) {
+             setNotification("😔 You seem stressed. Take care!");
+           } else {
+             setNotification("");
+          }
+        };
 
   //* Get MOOD emoji logic here: *//
   const getMoodEmoji = (mood) => {
@@ -319,6 +363,14 @@ const chartMoodData = Object.keys(moodData).map((mood) => ({
     >
       <div className="max-w-7xl mx-auto"></div>
       <Toaster position="top-right"/>
+
+      {notification && (
+        <div className="fixed top-5 right-5 bg-yellow-400 text-black px-4 py-2 rounded shadow-lg z-50 animate-bounce">
+          {notification}
+        </div>
+     )}
+
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
 {/* LEFT SIDE */}
 <div className="flex items-center gap-3">

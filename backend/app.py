@@ -32,7 +32,7 @@ def add_transaction():
         category=data['category'],
         type=data['type'],
         mood=data.get('mood'),
-        user_id=data.get('user_id')
+        user_id=data['user_id']
     )
 
     db.session.add(new_txn)
@@ -43,7 +43,8 @@ def add_transaction():
 #  GET TRANSACTIONS
 @app.route('/get-transactions', methods=['GET'])
 def get_transactions():
-    user_id = request.args.get('user_id')
+    data = request.json
+    user_id = data['user_id']
     transactions = Transaction.query.filter_by(user_id=user_id).all()
     
     result = []
