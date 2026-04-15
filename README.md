@@ -1,4 +1,4 @@
-# MoodWealth – is a Smart Finance + Mood Tracker
+# MoodWealth – is a Smart Finance and Mood Tracker
 
 MoodWealth is a modern web application that helps users track their financial transactions along with their emotional mood. It combines personal finance management with mood insights to help users make smarter financial decisions and managed well growth.
 
@@ -36,15 +36,13 @@ MoodWealth is a modern web application that helps users track their financial tr
 ## Project Structure :
 
 MoodWealth/
-│
-├── frontend/     # React App
-├── backend/      # Flask API
-├── README.md
+  frontend/     # React App
+  backend/      # Flask API
+  README.md
 
----
 
 ## How to Run Locally :
-First you must be run this project start with Bcakend
+First you must be run this project start with Backend
 # Run Backend
 cd backend
 python -m venv venv
