@@ -1,0 +1,79 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+frontend/node_modules/
+frontend/package-lock.json
+frontend/postcss.config.js
+frontend/tailwind.config.js
+
+# Ignore default CRA files you don't need
+frontend/src/App.test.js
+frontend/src/reportWebVitals.js
+frontend/src/setupTests.js
+frontend/src/logo.svg
+frontend/src/index.css
+frontend/src/App.css    
+
+# Ignore public files
+frontend/public/logo192.png
+frontend/public/logo512.png
+frontend/public/robots.txt
+frontend/public/manifest.json
+
+
+backend/node_modules/
+backend/_pycache_
+
+# =========================
+# Environment variables (SECRET)
+# =========================
+backend/.venv
+
+# =========================
+# MongoDB (local files if any)
+# =========================
+*.db
+*.sqlite
+
+# =========================
+# Build files
+# =========================
+build/
+dist/
+frontend/build/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Cache
+# =========================
+.cache/
+.parcel-cache/
+.tmp/
+.temp/
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor files
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Optional: testing
+# =========================
+coverage/
+
+uploads/
