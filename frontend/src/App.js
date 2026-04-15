@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import confetti from "canvas-confetti";
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { LineChart, Line, Legend } from "recharts";
 import { motion } from "framer-motion";
@@ -313,16 +313,18 @@ const chartMoodData = Object.keys(moodData).map((mood) => ({
     //* Main DashBoard *//
   return (
     <div 
-      className={`min-h-screen p-5 ${
+      className={`min-h-screen p-3 sm:p-5 md:p-8 ${
     darkMode ? "bg-black text-white" : "bg-white text-black"
   }`}  
     >
+      <div className="max-w-7xl mx-auto"></div>
       <Toaster position="top-right"/>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
 {/* LEFT SIDE */}
+<div className="flex items-center gap-3">
 <img src={logo} alt="logo" className="w-1- h-10"/>
 <h1
-  className="text-4xl font-bold flex items-center gap-2"
+  className="text-2xl sm:text-3xl md:text-4xl font-bold flex items-center gap-2"
   style={{ fontFamily: "Fredoka" }}
 >  <span className="animate-bounce text-2xl">💸</span>
     <span 
@@ -336,9 +338,10 @@ const chartMoodData = Object.keys(moodData).map((mood) => ({
   </span>
   <span className="animate-bounce">💰</span>
 </h1>
+</div>
 
 {/* RIGHT SIDE */}
-<div className="flex items-center gap-4 hover:scale-105 transition duration-300">
+<div className="flex flex-wrap justify-center sm:justify-end gap-3">
   <span className="text-white-300" style={{ fontFamily: "Fredoka" }}>
     👤: {user?.username}
   </span>
@@ -363,6 +366,7 @@ const chartMoodData = Object.keys(moodData).map((mood) => ({
   </button>
 </div>
 </div>
+
 {/* welcome-message */}
 <h2 className="text-xl mb-4" style={{ fontFamily: "Fredoka" }}>
 Welcome to you, {user?.username} 👋...
@@ -378,9 +382,9 @@ Welcome to you, {user?.username} 👋...
 </button>
 
 {showForm && (
-  <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50"
+  <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
   onClick={() => setShowForm(false)}>
-    <div className="bg- text-black p-6 rounded-xl w-96"
+    <div className="bg- text-black p-6 rounded-xl  w-[90%] sm:w-96"
      onClick={(e) => e.stopPropagation()}>
       <h2 className="text-lg font-bold mb-4">Add Transaction</h2>
 
@@ -454,7 +458,7 @@ Welcome to you, {user?.username} 👋...
 <div className="grid grid-cols-4 gap-4 mb-6 hover:scale-105 transition duration-300">
       <div>      
           <h3>Balance</h3>
-          <p className="text-xl font-bold hover:scale-105 transition duration-300">
+          <p className="font-bold hover:scale-105 transition duration-300">
             ₹{transactions.reduce((a, t) =>
               t.type === "income" ? a + t.amount : a - t.amount, 0)}
           </p>
@@ -462,7 +466,7 @@ Welcome to you, {user?.username} 👋...
 
          <div>      
           <h3>Income</h3>
-          <p className="text-xl font-bold hover:scale-105 transition duration-300">
+          <p className="font-bold hover:scale-105 transition duration-300">
             ₹{transactions.filter(t => t.type === "income")
               .reduce((a, t) => a + t.amount, 0)}
           </p>
@@ -470,14 +474,14 @@ Welcome to you, {user?.username} 👋...
 
          <div>        
           <h3>Expenses</h3>
-          <p className="text-xl font-bold hover:scale-105 transition duration-300">
+          <p className="font-bold hover:scale-105 transition duration-300">
             ₹{transactions.filter(t => t.type === "expense")
               .reduce((a, t) => a + t.amount, 0)}
           </p>
         </div>
         <div>
           <h3>Savings</h3>
-          <p className="text-xl font-bold hover:scale-105 transition duration-300">
+          <p className="font-bold hover:scale-105 transition duration-300">
             ₹{transactions
               .filter(t => t.type === "saving")
               .reduce((a, t) => a + t.amount, 0)}
@@ -532,6 +536,7 @@ Welcome to you, {user?.username} 👋...
   <h2 className="mb-3 font-semibold hover:scale-105 transition duration-300"
   style={{ fontFamily: "Fredoka" }}>Monthly Report 📊:</h2>
   <div>
+      <ResponsiveContainer width="100%" height={300}></ResponsiveContainer>
       <motion.div
        className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
        initial={{ opacity: 0, y: 30}}
