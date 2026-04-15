@@ -38,7 +38,7 @@ function App() {
   //* Fech transactions on load and after adding new transaction *//
   useEffect(() => {
     const fetchTransactions = async () => {
-      const res = await fetch(`http://127.0.0.1:5000/get-transactions?user_id=${user?.id}`);
+      const res = await fetch(`https://moodwealth-backend.onrender.com/get-transactions?user_id=${user?.id}`);
       const data = await res.json();
       setTransactions(data);
     };
@@ -56,7 +56,7 @@ function App() {
 
   //* Add Transaction logic here:- *//
   const addTransaction = () => {
-    fetch("http://127.0.0.1:5000/add-transaction", {
+    fetch("https://moodwealth-backend.onrender.com/add-transaction", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -173,7 +173,7 @@ function App() {
     alert(validation);
     return;
   }
-      const res = await fetch("http://127.0.0.1:5000/register", {
+      const res = await fetch("https://moodwealth-backend.onrender.com/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -189,7 +189,7 @@ function App() {
 
       //* Login logic here:- *//     
     const handleLogin = async () => {
-      const res = await fetch("http://127.0.0.1:5000/login", {
+      const res = await fetch("https://moodwealth-backend.onrender.com/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -423,7 +423,7 @@ Welcome to you, {user?.username} 👋...
         <option value="excited">😍 Excited</option>
         <option value="constant">😐 Constant</option>
         <option value="angry">😡 Angry</option>
-        <option value="tired">😴 Tired</option>
+        <option value="tired">🍜 Hungry</option>
         <option value="motivated">🤩 Motivated</option>
       </select>
 
