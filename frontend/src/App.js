@@ -427,7 +427,7 @@ Welcome to you, {user?.username} 👋...
         <option value="excited">😍 Excited</option>
         <option value="constant">😐 Constant</option>
         <option value="angry">😡 Angry</option>
-        <option value="tired">🍜 Hungry</option>
+        <option value="hungry">🍜 Hungry</option>
         <option value="motivated">🤩 Motivated</option>
       </select>
 
