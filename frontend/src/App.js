@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import confetti from "canvas-confetti";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { LineChart, Line, Legend } from "recharts";
 import { motion } from "framer-motion";
@@ -536,7 +536,6 @@ Welcome to you, {user?.username} 👋...
   <h2 className="mb-3 font-semibold hover:scale-105 transition duration-300"
   style={{ fontFamily: "Fredoka" }}>Monthly Report 📊:</h2>
   <div>
-      <ResponsiveContainer width="100%" height={300}></ResponsiveContainer>
       <motion.div
        className="bg-white/5 backdrop-blur-xl p-4 rounded-xl"
        initial={{ opacity: 0, y: 30}}
